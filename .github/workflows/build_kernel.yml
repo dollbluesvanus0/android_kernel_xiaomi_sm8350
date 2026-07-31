@@ -52,6 +52,24 @@ jobs:
           # Bypass the execveat check script that fails when we build directly without patches
           echo "" > KernelSU/kernel/tools/manual_hook_check.mk
 
+      - name: Fix compilation issues
+        run: |
+          cd kernel_source
+          echo "CONFIG_MI_HARDWARE_ID=y" >> arch/arm64/configs/vendor/lahaina-qgki_defconfig
+
+          # Fix missing exports in mi_disp_notifier that is configured as a module but used in vmlinux
+          sed -i 's/EXPORT_SYMBOL(mi_disp_register_client);//' techpack/display/msm/mi_disp/mi_disp_notifier.c || true
+          sed -i 's/EXPORT_SYMBOL(mi_disp_unregister_client);//' techpack/display/msm/mi_disp/mi_disp_notifier.c || true
+          echo "EXPORT_SYMBOL(mi_disp_register_client);" >> techpack/display/msm/mi_disp/mi_disp_notifier.c
+          echo "EXPORT_SYMBOL(mi_disp_unregister_client);" >> techpack/display/msm/mi_disp/mi_disp_notifier.c
+
+          # Fix get_hw_version_platform issues from CNSS/ICNSS configs
+          echo "EXPORT_SYMBOL(get_hw_version_platform);" >> drivers/misc/hwid.c
+          echo "EXPORT_SYMBOL(get_hw_country_version);" >> drivers/misc/hwid.c
+          echo "EXPORT_SYMBOL(get_hw_version_major);" >> drivers/misc/hwid.c
+          echo "EXPORT_SYMBOL(get_hw_version_minor);" >> drivers/misc/hwid.c
+          echo "EXPORT_SYMBOL(get_hw_version_build);" >> drivers/misc/hwid.c
+
       - name: Build Kernel
         run: |
           cd kernel_source
