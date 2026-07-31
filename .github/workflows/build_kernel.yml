@@ -56,10 +56,6 @@ jobs:
       - name: Build Kernel
         run: |
           cd kernel_source
-          echo "CONFIG_MI_HARDWARE_ID=y" >> arch/arm64/configs/vendor/lahaina-qgki_defconfig
-          cd ..
-
-          cd kernel_source
           export PATH="${PWD}/../clang/bin:$PATH"
           export ARCH=arm64
           export CROSS_COMPILE=aarch64-linux-gnu-
