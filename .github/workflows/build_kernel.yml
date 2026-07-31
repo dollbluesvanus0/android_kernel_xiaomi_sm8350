@@ -72,7 +72,7 @@ jobs:
           cd AnyKernel3
           sed -i 's/device.name1=maguro/device.name1=venus/' anykernel.sh
           sed -i 's/device.name2=toro/device.name2=star/' anykernel.sh
-          sed -i 's/block=\/dev\/block\/platform\/omap\/omap_hsmmc.0\/by-name\/boot/block=\/dev\/block\/bootdevice\/by-name\/boot/' anykernel.sh
+          sed -i 's/BLOCK=\/dev\/block\/platform\/omap\/omap_hsmmc.0\/by-name\/boot/BLOCK=\/dev\/block\/bootdevice\/by-name\/boot/' anykernel.sh
           cp ../kernel_source/out/arch/arm64/boot/Image .
           zip -r9 ../AnyKernel3-ReSukiSU.zip *
 
