@@ -39,6 +39,7 @@ jobs:
              wget -q https://raw.githubusercontent.com/Neutron-Toolchains/antman/main/antman
              chmod +x antman
              ./antman -S
+             ./antman --patch=glibc
           fi
           cd ..
           echo "${PWD}/clang/bin" >> $GITHUB_PATH
