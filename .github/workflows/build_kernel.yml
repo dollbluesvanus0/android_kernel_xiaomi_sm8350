@@ -62,7 +62,7 @@ jobs:
           export LLVM_IAS=1
 
           make O=out vendor/lahaina-qgki_defconfig
-          make O=out -j$(nproc)
+          make O=out -j4
 
       - name: Setup AnyKernel3
         run: |
