@@ -23,24 +23,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y flex bison build-essential libelf-dev libssl-dev bc wget curl zip unzip cpio zstd
 
-      - name: Setup Clang 17.0.2
+      - name: Setup Clang
         run: |
           mkdir -p clang
           cd clang
-          wget -q https://gitlab.com/Panchajanya1999/azure-clang/-/raw/main/clang-17.0.2.tar.gz || wget -q https://github.com/ZyC-X/zyc-clang/releases/download/v17.0.2-1/zyc-clang-17.0.2.tar.gz || true
-          if [ -f clang-17.0.2.tar.gz ]; then
-            tar -xf clang-17.0.2.tar.gz
-          elif [ -f zyc-clang-17.0.2.tar.gz ]; then
-            tar -xf zyc-clang-17.0.2.tar.gz
-          else
-             wget -q https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/main/clang-r487747c.tar.gz || true
-             tar -xf clang-r487747c.tar.gz || true
-
-             wget -q https://raw.githubusercontent.com/Neutron-Toolchains/antman/main/antman
-             chmod +x antman
-             ./antman -S
-             ./antman --patch=glibc
-          fi
+          wget -q https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/main/clang-r416183b.tar.gz
+          tar -xf clang-r416183b.tar.gz
           cd ..
           echo "${PWD}/clang/bin" >> $GITHUB_PATH
 
