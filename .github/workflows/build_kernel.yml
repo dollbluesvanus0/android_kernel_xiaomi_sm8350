@@ -21,14 +21,14 @@ jobs:
       - name: Setup environment
         run: |
           sudo apt-get update
-          sudo apt-get install -y flex bison build-essential libelf-dev libssl-dev bc wget curl zip unzip cpio zstd
+          sudo apt-get install -y flex bison build-essential libelf-dev libssl-dev bc wget curl zip unzip cpio zstd gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi
 
       - name: Setup Clang
         run: |
           mkdir -p clang
           cd clang
-          wget -q https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/main/clang-r416183b.tar.gz
-          tar -xf clang-r416183b.tar.gz
+          wget -q https://github.com/llvm/llvm-project/releases/download/llvmorg-17.0.2/clang+llvm-17.0.2-x86_64-linux-gnu-ubuntu-22.04.tar.xz
+          tar -xf clang+llvm-17.0.2-x86_64-linux-gnu-ubuntu-22.04.tar.xz --strip-components=1
           cd ..
           echo "${PWD}/clang/bin" >> $GITHUB_PATH
 
@@ -58,10 +58,10 @@ jobs:
           cd AnyKernel3
           sed -i 's/device.name1=maguro/device.name1=venus/' anykernel.sh
           sed -i 's/device.name2=toro/device.name2=star/' anykernel.sh
-          sed -i 's/BLOCK=\/dev\/block\/platform\/omap\/omap_hsmmc.0\/by-name\/boot/BLOCK=\/dev\/block\/bootdevice\/by-name\/boot/' anykernel.sh
-          sed -i 's/IS_SLOT_DEVICE=0;/IS_SLOT_DEVICE=auto;/' anykernel.sh
+          sed -i 's/block=\/dev\/block\/platform\/omap\/omap_hsmmc.0\/by-name\/boot/block=\/dev\/block\/bootdevice\/by-name\/boot/' anykernel.sh
+          sed -i 's/is_slot_device=0;/is_slot_device=auto;/' anykernel.sh
           cp ../kernel_source/out/arch/arm64/boot/Image.gz .
-          cp ../kernel_source/out/arch/arm64/boot/dts/vendor/qcom/*.dtb . || true
+          cat ../kernel_source/out/arch/arm64/boot/dts/vendor/qcom/*.dtb > dtb || true
           zip -r9 ../AnyKernel3-ReSukiSU.zip *
 
       - name: Upload Artifact
