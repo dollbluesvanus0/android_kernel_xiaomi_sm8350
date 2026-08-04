@@ -38,6 +38,8 @@ jobs:
           curl -LSs "https://raw.githubusercontent.com/ReSukiSU/ReSukiSU/main/kernel/setup.sh" | bash -s main
           echo "CONFIG_KSU=y" >> arch/arm64/configs/vendor/lahaina-qgki_defconfig
           sed -i 's/$(error TP hooks are incompatible with Non-GKI\/GKI 1.0 kernels.)//g' KernelSU/kernel/Kbuild
+          sed -i 's/ksu_handle_inode_event/ksu_handle_event/g' KernelSU/kernel/manager/pkg_observer.c || true
+          sed -i 's/handle_inode_event/handle_event/g' KernelSU/kernel/manager/pkg_observer.c || true
 
 
       - name: Build Kernel
