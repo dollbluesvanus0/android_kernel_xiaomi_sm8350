@@ -16,7 +16,7 @@ fi
 : "${KERNEL_CONFIG:?KERNEL_CONFIG is required}"
 : "${KSU_SETUP_SOURCE:?KSU_SETUP_SOURCE is required}"
 : "${KSU_REF:?KSU_REF is required}"
-base_config=${KERNEL_BASE_CONFIG:-defconfig}
+base_config=${KERNEL_BASE_CONFIG:-gki_defconfig}
 ksu_manual_hook=${KSU_MANUAL_HOOK:-0}
 
 kernel_root=${KERNEL_ROOT:-"${project_root}/kernel"}

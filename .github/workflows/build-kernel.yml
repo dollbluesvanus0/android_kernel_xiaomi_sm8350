@@ -7,6 +7,7 @@ on:
       - '.github/workflows/build-kernel.yml'
       - 'anykernel/**'
       - 'config.env'
+      - 'patches/**'
       - 'scripts/**'
   workflow_dispatch:
     inputs:
@@ -62,7 +63,7 @@ jobs:
       KERNEL_SOURCE: ${{ inputs.kernel_source || 'https://github.com/RobertGarciaa/android_kernel_xiaomi_sm8350.git' }}
       KERNEL_SOURCE_REF: ${{ inputs.kernel_source_ref || 'seventeen' }}
       KERNEL_CONFIG: ${{ inputs.kernel_config || 'vendor/venus_QGKI.config' }}
-      KERNEL_BASE_CONFIG: defconfig
+      KERNEL_BASE_CONFIG: gki_defconfig
       KSU_SETUP_SOURCE: ${{ inputs.ksu_setup_source || 'https://raw.githubusercontent.com/ReSukiSU/ReSukiSU/main/kernel/setup.sh' }}
       KSU_REF: ${{ inputs.ksu_ref || 'main' }}
       KSU_MANUAL_HOOK: ${{ inputs.ksu_manual_hook || '1' }}
