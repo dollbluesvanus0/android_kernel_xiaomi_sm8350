@@ -11,3 +11,24 @@ diff --git a/kernel/taskstats.c b/kernel/taskstats.c
  {
  }
  #endif
+diff --git a/net/mac80211/Makefile b/net/mac80211/Makefile
+--- a/net/mac80211/Makefile
++++ b/net/mac80211/Makefile
+@@ -54,12 +54,14 @@ CFLAGS_trace.o := -I$(src)
+ CFLAGS_trace.o := -I$(src)
+ 
+-rc80211_minstrel-y := \
++rc80211_minstrel_objs := \
+ 	rc80211_minstrel.o \
+ 	rc80211_minstrel_ht.o
+ 
+-rc80211_minstrel-$(CONFIG_MAC80211_DEBUGFS) += \
++ifeq ($(CONFIG_MAC80211_DEBUGFS),y)
++rc80211_minstrel_objs += \
+ 	rc80211_minstrel_debugfs.o \
+ 	rc80211_minstrel_ht_debugfs.o
++endif
+ 
+-mac80211-$(CONFIG_MAC80211_RC_MINSTREL) += $(rc80211_minstrel-y)
++mac80211-$(CONFIG_MAC80211_RC_MINSTREL) += $(rc80211_minstrel_objs)
+ 

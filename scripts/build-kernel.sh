@@ -90,6 +90,7 @@ bash "${kernel_root}/scripts/config" --file "${out_dir}/.config" \
   --enable KALLSYMS_ALL \
   --enable BPF_SYSCALL \
   --disable BTRFS_FS \
+  --disable QRTR_TUN \
   --enable EXT4_FS \
   --enable OVERLAY_FS \
   --enable TMPFS_XATTR \
@@ -123,6 +124,13 @@ grep -q '^CONFIG_BPF_SYSCALL=y$' "${out_dir}/.config" || {
 # exclude the optional filesystem rather than weakening its user-memory check.
 grep -q '^# CONFIG_BTRFS_FS is not set$' "${out_dir}/.config" || {
   echo 'CONFIG_BTRFS_FS could not be disabled for this incompatible source tree.' >&2
+  exit 1
+}
+
+# QRTR TUN is only a userspace test/tunnel endpoint. Its source in this tree
+# has not been updated for the four-argument qrtr_endpoint_register() API.
+grep -q '^# CONFIG_QRTR_TUN is not set$' "${out_dir}/.config" || {
+  echo 'CONFIG_QRTR_TUN could not be disabled for this incompatible source tree.' >&2
   exit 1
 }
 
