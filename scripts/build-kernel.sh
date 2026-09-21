@@ -33,6 +33,11 @@ git clone --depth=1 --branch "${KERNEL_SOURCE_REF}" "${KERNEL_SOURCE}" "${kernel
 "${project_root}/scripts/integrate-kernelsu.sh" \
   "${kernel_root}" "${KSU_SETUP_SOURCE}" "${KSU_REF}"
 
+if [[ "${ksu_manual_hook}" == 1 ]] && \
+   [[ -f "${kernel_root}/KernelSU/kernel/tools/manual_hook_check.mk" ]]; then
+  "${project_root}/scripts/apply-resukisu-manual-hooks.sh" "${kernel_root}"
+fi
+
 clang_bin=${CLANG_BIN:-"${toolchain_root}/${CLANG_VERSION}/bin"}
 gcc64_bin=${GCC64_BIN:-"${toolchain_root}/aarch64-linux-android-${GCC_VERSION}/bin"}
 gcc32_bin=${GCC32_BIN:-"${toolchain_root}/arm-linux-androideabi-${GCC_VERSION}/bin"}
