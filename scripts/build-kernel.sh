@@ -86,6 +86,7 @@ bash "${kernel_root}/scripts/config" --file "${out_dir}/.config" \
   --enable KPROBES \
   --enable KALLSYMS \
   --enable KALLSYMS_ALL \
+  --enable BPF_SYSCALL \
   --enable EXT4_FS \
   --enable OVERLAY_FS \
   --enable TMPFS_XATTR \
@@ -103,6 +104,14 @@ make "${make_args[@]}" olddefconfig
 
 grep -q '^CONFIG_KSU=y$' "${out_dir}/.config" || {
   echo 'CONFIG_KSU=y was not accepted by the selected kernel config.' >&2
+  exit 1
+}
+
+# This tree enables CONFIG_BPF_JIT in the device fragment.  Its trampoline
+# code relies on RCU Tasks Trace, which is selected by BPF_SYSCALL; enable it
+# explicitly so the configuration is internally consistent.
+grep -q '^CONFIG_BPF_SYSCALL=y$' "${out_dir}/.config" || {
+  echo 'CONFIG_BPF_SYSCALL=y was not accepted; BPF JIT trampoline cannot build safely.' >&2
   exit 1
 }
 
