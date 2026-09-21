@@ -1,0 +1,141 @@
+name: Build Xiaomi Mi 11 kernel
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/build-kernel.yml'
+      - 'anykernel/**'
+      - 'config.env'
+      - 'scripts/**'
+  workflow_dispatch:
+    inputs:
+      kernel_source:
+        description: 'Kernel source repository (use the tree matching your ROM)'
+        required: true
+        default: 'https://github.com/RobertGarciaa/android_kernel_xiaomi_sm8350.git'
+        type: string
+      kernel_source_ref:
+        description: 'Kernel source branch or tag'
+        required: true
+        default: 'seventeen'
+        type: string
+      kernel_config:
+        description: 'Kernel config fragment or defconfig under arch/arm64/configs'
+        required: true
+        default: 'vendor/venus_QGKI.config'
+        type: string
+      ksu_setup_source:
+        description: 'KernelSU-compatible setup.sh URL'
+        required: true
+        default: 'https://raw.githubusercontent.com/ReSukiSU/ReSukiSU/main/kernel/setup.sh'
+        type: string
+      ksu_ref:
+        description: 'KernelSU-compatible ref or commit (ReSukiSU default: main)'
+        required: true
+        default: 'main'
+        type: string
+      ksu_manual_hook:
+        description: 'Enable Manual Hook when the selected fork provides it (1/0)'
+        required: true
+        default: '1'
+        type: string
+      clang_version:
+        description: 'AOSP clang directory name'
+        required: true
+        default: 'clang-r416183b'
+        type: string
+      localversion:
+        description: 'Kernel LOCALVERSION suffix'
+        required: true
+        default: '-venus-ksu'
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    env:
+      USE_CONFIG_DEFAULTS: '0'
+      KERNEL_SOURCE: ${{ inputs.kernel_source || 'https://github.com/RobertGarciaa/android_kernel_xiaomi_sm8350.git' }}
+      KERNEL_SOURCE_REF: ${{ inputs.kernel_source_ref || 'seventeen' }}
+      KERNEL_CONFIG: ${{ inputs.kernel_config || 'vendor/venus_QGKI.config' }}
+      KERNEL_BASE_CONFIG: defconfig
+      KSU_SETUP_SOURCE: ${{ inputs.ksu_setup_source || 'https://raw.githubusercontent.com/ReSukiSU/ReSukiSU/main/kernel/setup.sh' }}
+      KSU_REF: ${{ inputs.ksu_ref || 'main' }}
+      KSU_MANUAL_HOOK: ${{ inputs.ksu_manual_hook || '1' }}
+      CLANG_VERSION: ${{ inputs.clang_version || 'clang-r416183b' }}
+      CLANG_BRANCH: android11-release
+      GCC_VERSION: '4.9'
+      GCC_BRANCH: android11-release
+      ANYKERNEL_SOURCE: https://github.com/osm0sis/AnyKernel3.git
+      ANYKERNEL_REF: master
+      LOCALVERSION: ${{ inputs.localversion || '-venus-resukisu' }}
+      TOOLCHAIN_ROOT: ${{ github.workspace }}/.toolchains
+      KERNEL_ROOT: ${{ github.workspace }}/kernel
+      OUT_DIR: ${{ github.workspace }}/out
+
+    steps:
+      - name: Checkout build project
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            bc bison build-essential cpio curl device-tree-compiler flex \
+            libelf-dev libncurses-dev libssl-dev lz4 lzop python3 rsync zip
+
+      - name: Cache Android 11 toolchains
+        uses: actions/cache@v4
+        with:
+          path: .toolchains
+          key: ${{ runner.os }}-android11-${{ env.CLANG_VERSION }}-gcc-${{ env.GCC_VERSION }}
+
+      - name: Download Android 11 toolchains
+        run: |
+          set -euo pipefail
+          mkdir -p .toolchains/${CLANG_VERSION} .toolchains/aarch64-linux-android-${GCC_VERSION} .toolchains/arm-linux-androideabi-${GCC_VERSION}
+
+          if [[ ! -x .toolchains/${CLANG_VERSION}/bin/clang ]]; then
+            curl --fail --location --retry 5 \
+              "https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/${CLANG_BRANCH}/${CLANG_VERSION}.tar.gz" \
+              | tar -xz -C .toolchains/${CLANG_VERSION}
+          fi
+
+          if [[ ! -x .toolchains/aarch64-linux-android-${GCC_VERSION}/bin/aarch64-linux-android-gcc ]]; then
+            curl --fail --location --retry 5 \
+              "https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-${GCC_VERSION}/+archive/refs/heads/${GCC_BRANCH}/aarch64-linux-android-${GCC_VERSION}.tar.gz" \
+              | tar -xz -C .toolchains/aarch64-linux-android-${GCC_VERSION}
+          fi
+
+          if [[ ! -x .toolchains/arm-linux-androideabi-${GCC_VERSION}/bin/arm-linux-androideabi-gcc ]]; then
+            curl --fail --location --retry 5 \
+              "https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-${GCC_VERSION}/+archive/refs/heads/${GCC_BRANCH}/arm-linux-androideabi-${GCC_VERSION}.tar.gz" \
+              | tar -xz -C .toolchains/arm-linux-androideabi-${GCC_VERSION}
+          fi
+
+      - name: Integrate and build kernel
+        run: |
+          chmod +x scripts/*.sh
+          scripts/build-kernel.sh
+
+      - name: Package AnyKernel3 ZIP
+        run: |
+          chmod +x scripts/*.sh
+          KERNEL_VERSION="${GITHUB_SHA::12}" scripts/package-anykernel.sh
+
+      - name: Upload kernel artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: venus-kernel-${{ github.sha }}
+          path: |
+            dist/*.zip
+            dist/*.sha256
+            Image
+            dtbo.img
+            kernel-commit.txt
+            venus.config
+          if-no-files-found: warn
