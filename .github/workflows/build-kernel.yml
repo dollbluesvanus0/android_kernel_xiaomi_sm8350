@@ -2,7 +2,7 @@ name: Build Xiaomi Mi 11 kernel
 
 on:
   push:
-    branches: [main]
+    branches: [main, seventeen]
     paths:
       - '.github/workflows/build-kernel.yml'
       - 'anykernel/**'
@@ -48,7 +48,7 @@ on:
       localversion:
         description: 'Kernel LOCALVERSION suffix'
         required: true
-        default: '-venus-ksu'
+        default: '-venus-resukisu'
         type: string
 
 permissions:
@@ -67,7 +67,7 @@ jobs:
       KSU_REF: ${{ inputs.ksu_ref || 'main' }}
       KSU_MANUAL_HOOK: ${{ inputs.ksu_manual_hook || '1' }}
       CLANG_VERSION: ${{ inputs.clang_version || 'clang-r416183b' }}
-      CLANG_BRANCH: android11-release
+      CLANG_BRANCH: android12-release
       GCC_VERSION: '4.9'
       GCC_BRANCH: android11-release
       ANYKERNEL_SOURCE: https://github.com/osm0sis/AnyKernel3.git
@@ -88,34 +88,14 @@ jobs:
             bc bison build-essential cpio curl device-tree-compiler flex \
             libelf-dev libncurses-dev libssl-dev lz4 lzop python3 rsync zip
 
-      - name: Cache Android 11 toolchains
+      - name: Cache kernel toolchains
         uses: actions/cache@v4
         with:
           path: .toolchains
-          key: ${{ runner.os }}-android11-${{ env.CLANG_VERSION }}-gcc-${{ env.GCC_VERSION }}
+          key: ${{ runner.os }}-toolchains-v2-${{ env.CLANG_BRANCH }}-${{ env.CLANG_VERSION }}-${{ env.GCC_BRANCH }}-gcc-${{ env.GCC_VERSION }}
 
-      - name: Download Android 11 toolchains
-        run: |
-          set -euo pipefail
-          mkdir -p .toolchains/${CLANG_VERSION} .toolchains/aarch64-linux-android-${GCC_VERSION} .toolchains/arm-linux-androideabi-${GCC_VERSION}
-
-          if [[ ! -x .toolchains/${CLANG_VERSION}/bin/clang ]]; then
-            curl --fail --location --retry 5 \
-              "https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/${CLANG_BRANCH}/${CLANG_VERSION}.tar.gz" \
-              | tar -xz -C .toolchains/${CLANG_VERSION}
-          fi
-
-          if [[ ! -x .toolchains/aarch64-linux-android-${GCC_VERSION}/bin/aarch64-linux-android-gcc ]]; then
-            curl --fail --location --retry 5 \
-              "https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-${GCC_VERSION}/+archive/refs/heads/${GCC_BRANCH}/aarch64-linux-android-${GCC_VERSION}.tar.gz" \
-              | tar -xz -C .toolchains/aarch64-linux-android-${GCC_VERSION}
-          fi
-
-          if [[ ! -x .toolchains/arm-linux-androideabi-${GCC_VERSION}/bin/arm-linux-androideabi-gcc ]]; then
-            curl --fail --location --retry 5 \
-              "https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-${GCC_VERSION}/+archive/refs/heads/${GCC_BRANCH}/arm-linux-androideabi-${GCC_VERSION}.tar.gz" \
-              | tar -xz -C .toolchains/arm-linux-androideabi-${GCC_VERSION}
-          fi
+      - name: Download and verify toolchains
+        run: bash scripts/download-toolchains.sh
 
       - name: Integrate and build kernel
         run: |
