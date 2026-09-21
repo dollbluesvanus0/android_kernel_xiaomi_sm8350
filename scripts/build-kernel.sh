@@ -91,6 +91,7 @@ bash "${kernel_root}/scripts/config" --file "${out_dir}/.config" \
   --enable BPF_SYSCALL \
   --disable BTRFS_FS \
   --disable QRTR_TUN \
+  --disable QCOM_CLK_APCS_MSM8916 \
   --enable EXT4_FS \
   --enable OVERLAY_FS \
   --enable TMPFS_XATTR \
@@ -131,6 +132,13 @@ grep -q '^# CONFIG_BTRFS_FS is not set$' "${out_dir}/.config" || {
 # has not been updated for the four-argument qrtr_endpoint_register() API.
 grep -q '^# CONFIG_QRTR_TUN is not set$' "${out_dir}/.config" || {
   echo 'CONFIG_QRTR_TUN could not be disabled for this incompatible source tree.' >&2
+  exit 1
+}
+
+# MSM8916's APCS CPU-clock driver is unrelated to SM8350 and has a stale
+# parent-map type in this mixed source tree.
+grep -q '^# CONFIG_QCOM_CLK_APCS_MSM8916 is not set$' "${out_dir}/.config" || {
+  echo 'CONFIG_QCOM_CLK_APCS_MSM8916 could not be disabled for this source tree.' >&2
   exit 1
 }
 
