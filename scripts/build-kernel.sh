@@ -89,6 +89,7 @@ bash "${kernel_root}/scripts/config" --file "${out_dir}/.config" \
   --enable KALLSYMS \
   --enable KALLSYMS_ALL \
   --enable BPF_SYSCALL \
+  --disable BTRFS_FS \
   --enable EXT4_FS \
   --enable OVERLAY_FS \
   --enable TMPFS_XATTR \
@@ -114,6 +115,14 @@ grep -q '^CONFIG_KSU=y$' "${out_dir}/.config" || {
 # explicitly so the configuration is internally consistent.
 grep -q '^CONFIG_BPF_SYSCALL=y$' "${out_dir}/.config" || {
   echo 'CONFIG_BPF_SYSCALL=y was not accepted; BPF JIT trampoline cannot build safely.' >&2
+  exit 1
+}
+
+# The seventeen tree's Btrfs backport calls probe_user_write(), which this
+# arm64 5.4 base does not provide. Android on venus does not use Btrfs;
+# exclude the optional filesystem rather than weakening its user-memory check.
+grep -q '^# CONFIG_BTRFS_FS is not set$' "${out_dir}/.config" || {
+  echo 'CONFIG_BTRFS_FS could not be disabled for this incompatible source tree.' >&2
   exit 1
 }
 
