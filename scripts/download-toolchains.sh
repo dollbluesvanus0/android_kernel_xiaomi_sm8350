@@ -28,17 +28,19 @@ for spec in aarch64:aarch64-linux-android arm:arm-linux-androideabi; do
   arch=${spec%%:*}
   triple=${spec#*:}
   dest="${toolchain_root}/${triple}-${GCC_VERSION}"
-  if [[ ! -x "${dest}/bin/${triple}-gcc" || ! -x "${dest}/bin/${triple}-ld" ]]; then
+  # Android's GCC 4.9 prebuilts for this branch only provide the GNU
+  # binutils. The kernel is compiled by Clang, while CROSS_COMPILE resolves
+  # linker and object tools from this directory.
+  if [[ ! -x "${dest}/bin/${triple}-ld" ]]; then
     git clone --depth=1 --branch "${GCC_BRANCH}" \
       "https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/${arch}/${triple}-${GCC_VERSION}" \
       "${work}/${arch}"
-    test -x "${work}/${arch}/bin/${triple}-gcc"
     test -x "${work}/${arch}/bin/${triple}-ld"
     mkdir -p "${dest}"
     # Copy the repository contents without its Git metadata.
     tar -C "${work}/${arch}" --exclude=./.git -cf - . | tar -C "${dest}" -xf -
   fi
-  "${dest}/bin/${triple}-gcc" --version
+  "${dest}/bin/${triple}-ld" --version
 done
 "${clang_dir}/bin/clang" --version
 "${clang_dir}/bin/ld.lld" --version
