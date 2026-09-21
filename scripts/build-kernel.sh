@@ -30,6 +30,8 @@ mkdir -p "${out_dir}"
 echo "Cloning ${KERNEL_SOURCE}@${KERNEL_SOURCE_REF}"
 git clone --depth=1 --branch "${KERNEL_SOURCE_REF}" "${KERNEL_SOURCE}" "${kernel_root}"
 
+"${project_root}/scripts/apply-source-build-fixes.sh" "${kernel_root}"
+
 "${project_root}/scripts/integrate-kernelsu.sh" \
   "${kernel_root}" "${KSU_SETUP_SOURCE}" "${KSU_REF}"
 
